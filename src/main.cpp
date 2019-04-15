@@ -83,24 +83,33 @@ int main(void) {
 	glDeleteShader(vertexShader);
 	glDeleteShader(fragmentShader);
 
-	float vertices[] = {
+	float firstTriangle[] = {
 		-0.9f, -0.5f, 0.0f,
 		-0.0f, -0.5f, 0.0f,
 		-0.45f, 0.5f, 0.0f,
-
-		 0.0f, -0.5f, 0.0f,
-		 0.9f, -0.5f, 0.0f,
-		 0.45f, 0.5f, 0.0f
+	};
+	float secondTriangle[] = {
+		0.0f, -0.5f, 0.0f,
+		0.9f, -0.5f, 0.0f,
+		0.45f, 0.5f, 0.0f
 	};
 
-	unsigned int VBO, VAO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
+	unsigned int VBOs[2], VAOs[2];
+	glGenVertexArrays(2, VAOs);
+	glGenBuffers(2, VBOs);
 	
-	glBindVertexArray(VAO);
+	glBindVertexArray(VAOs[0]);
 
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(firstTriangle), firstTriangle, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindVertexArray(VAOs[1]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(secondTriangle), secondTriangle, GL_STATIC_DRAW);
 
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
@@ -114,12 +123,19 @@ int main(void) {
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		glUseProgram(shaderProgram);
-		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+
+		glBindVertexArray(VAOs[0]);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
+
+		glBindVertexArray(VAOs[1]);
+		glDrawArrays(GL_TRIANGLES, 0, 3);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	glDeleteVertexArrays(2, VAOs);
+	glDeleteBuffers(2, VBOs);
 
 	glfwTerminate();
 	return 0;
