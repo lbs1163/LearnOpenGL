@@ -9,10 +9,16 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 const char *vertexShaderSource =
-	"#version 330 core										\n"
+	"#version 460 core										\n"
 	"layout (location = 0) in vec3 aPos;					\n"
 	"void main() {											\n"
 	"    gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);	\n"
+	"}														\n";
+const char *fragmentShaderSource =
+	"#version 460 core										\n"
+	"out vec4 FragColor;									\n"
+	"void main() {											\n"
+	"    FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);			\n"
 	"}														\n";
 
 int main(void) {
@@ -55,6 +61,35 @@ int main(void) {
 		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
 		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
 	}
+
+	unsigned int fragmentShader;
+	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
+	glCompileShader(fragmentShader);
+
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
+	if (!success) {
+		char infoLog[512];
+		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
+	}
+
+	unsigned int shaderProgram;
+	shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success) {
+		char infoLog[512];
+		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
+		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+	}
+
+	glUseProgram(shaderProgram);
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
 
 	unsigned int VBO;
 	glGenBuffers(1, &VBO);
