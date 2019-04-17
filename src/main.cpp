@@ -138,35 +138,6 @@ int main(void) {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	stbi_set_flip_vertically_on_load(true);
-
-	int width, height, nrChannels;
-	unsigned char *data = stbi_load("./resources/textures/sans.jpg", &width, &height, &nrChannels, 0);
-	if (data) {
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else {
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-
-	lightingShader.use();
-	lightingShader.setInt("Texture", 0);
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-	lightingShader.setVec3("lightPos", lightPos);
-
 	while (!glfwWindowShouldClose(window)) {
 		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -178,7 +149,23 @@ int main(void) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		lightingShader.use();
+		lightingShader.setVec3("light.position", lightPos);
 		lightingShader.setVec3("viewPos", camera.Position);
+
+		glm::vec3 lightColor;
+		lightColor.x = sin(glfwGetTime() * 2.0f);
+		lightColor.y = sin(glfwGetTime() * 0.7f);
+		lightColor.z = sin(glfwGetTime() * 1.3f);
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f);
+		lightingShader.setVec3("light.ambient", ambientColor);
+		lightingShader.setVec3("light.diffuse", diffuseColor);
+		lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
+		lightingShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+		lightingShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+		lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+		lightingShader.setFloat("material.shininess", 32.0f);
 		
 		glm::mat4 view = camera.GetViewMatrix();
 		lightingShader.setMat4("view", view);
