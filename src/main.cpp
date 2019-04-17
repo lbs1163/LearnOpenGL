@@ -115,7 +115,7 @@ int main(void) {
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	unsigned int VBO, cubeVAO, lightVAO;
+	unsigned int VBO, cubeVAO;
 
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
@@ -130,21 +130,23 @@ int main(void) {
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
 
-	glGenVertexArrays(1, &lightVAO);
-	glBindVertexArray(lightVAO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-	glEnableVertexAttribArray(0);
-
 	unsigned int diffuseMap = loadTexture("resources/textures/container2.png");
 	unsigned int specularMap = loadTexture("resources/textures/container2_specular.png");
 
 	lightingShader.use();
-	lightingShader.setVec3("light.position", lightPos);
 	lightingShader.setInt("material.diffuse", 0);
 	lightingShader.setInt("material.specular", 1);
+
+	lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+	lightingShader.setVec3("light.ambient", 0.1f, 0.1f, 0.1f);
+	lightingShader.setVec3("light.diffuse", 0.8f, 0.8f, 0.8f);
+	lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 	lightingShader.setFloat("light.constant", 1.0f);
 	lightingShader.setFloat("light.linear", 0.09f);
 	lightingShader.setFloat("light.quadratic", 0.032f);
+
+	lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+	lightingShader.setFloat("material.shininess", 64.0f);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, diffuseMap);
@@ -163,13 +165,8 @@ int main(void) {
 
 		lightingShader.use();
 		lightingShader.setVec3("viewPos", camera.Position);
-		
-		lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-		lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-		lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-
-		lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
-		lightingShader.setFloat("material.shininess", 64.0f);
+		lightingShader.setVec3("light.position", camera.Position);
+		lightingShader.setVec3("light.direction", camera.Front);
 		
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
@@ -187,17 +184,6 @@ int main(void) {
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-
-		lampShader.use();
-		lampShader.setMat4("projection", projection);
-		lampShader.setMat4("view", view);
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos);
-		model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-		lampShader.setMat4("model", model);
-
-		glBindVertexArray(lightVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
