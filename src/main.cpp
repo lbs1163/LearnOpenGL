@@ -19,6 +19,8 @@ void processInput(GLFWwindow *window);
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
 float lastX = 400.0f, lastY = 300.0f;
 bool firstMouse = true;
@@ -52,6 +54,7 @@ int main(void) {
 	glEnable(GL_DEPTH_TEST);
 
 	Shader ourShader("./src/shader.vert", "./src/shader.frag");
+	Shader lampShader("./src/shader.vert", "./src/lamp.frag");
 
 	float vertices[] = {
 		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
@@ -110,18 +113,23 @@ int main(void) {
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	unsigned int VBO, VAO;
-	glGenVertexArrays(1, &VAO);
+	unsigned int VBO, VAO, lightVAO;
+
 	glGenBuffers(1, &VBO);
-
-	glBindVertexArray(VAO);
-
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
+	glGenVertexArrays(1, &VAO);
+	glBindVertexArray(VAO);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+	glEnableVertexAttribArray(1);
 
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
 
@@ -168,9 +176,12 @@ int main(void) {
 	ourShader.use();
 	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
+	ourShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+
+	lampShader.use();
 
 	while (!glfwWindowShouldClose(window)) {
-		float currentFrame = glfwGetTime();
+		float currentFrame = (float)glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
@@ -183,6 +194,8 @@ int main(void) {
 		glBindTexture(GL_TEXTURE_2D, texture1);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
+
+		ourShader.use();
 		
 		glm::mat4 view = camera.GetViewMatrix();
 		ourShader.setMat4("view", view);
@@ -201,11 +214,22 @@ int main(void) {
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
+		lampShader.use();
+		glm::mat4 model = glm::translate(glm::mat4(1.0f), lightPos);
+		lampShader.setMat4("model", model);
+		view = camera.GetViewMatrix();
+		lampShader.setMat4("view", view);
+		projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		lampShader.setMat4("projection", projection);
+		glBindVertexArray(lightVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteBuffers(1, &VBO);
 
 	glfwTerminate();
@@ -219,22 +243,22 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 void mouse_callback(GLFWwindow* window, double xpos, double ypos) {
 	if (firstMouse)
 	{
-		lastX = xpos;
-		lastY = ypos;
+		lastX = (float)xpos;
+		lastY = (float)ypos;
 		firstMouse = false;
 	}
 
-	float xoffset = xpos - lastX;
-	float yoffset = lastY - ypos;
+	float xoffset = (float)xpos - lastX;
+	float yoffset = lastY - (float)ypos;
 
-	lastX = xpos;
-	lastY = ypos;
+	lastX = (float)xpos;
+	lastY = (float)ypos;
 
 	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
-	camera.ProcessMouseScroll(yoffset);
+	camera.ProcessMouseScroll((float)yoffset);
 }
 
 void processInput(GLFWwindow *window) {
