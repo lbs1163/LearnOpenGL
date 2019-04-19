@@ -53,8 +53,65 @@ int main(void) {
 
 	glEnable(GL_DEPTH_TEST);
 
-	Shader ourShader("./src/model_loading.vert", "./src/model_loading.frag");
+	glm::vec3 pointLightPositions[] = {
+		glm::vec3(0.7f,  0.2f,  2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f,  2.0f, -12.0f),
+		glm::vec3(0.0f,  0.0f, -3.0f)
+	};
+
+	Shader lightingShader("./src/basic_lighting.vert", "./src/basic_lighting.frag");
 	Model ourModel("./resources/models/nanosuit/nanosuit.obj");
+
+	lightingShader.use();
+	lightingShader.setVec3("viewPos", camera.Position);
+	lightingShader.setFloat("material.shininess", 32.0f);
+
+	lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+	lightingShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+	lightingShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+	lightingShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+
+	lightingShader.setVec3("pointLights[0].position", pointLightPositions[0]);
+	lightingShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+	lightingShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+	lightingShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+	lightingShader.setFloat("pointLights[0].constant", 1.0f);
+	lightingShader.setFloat("pointLights[0].linear", 0.09f);
+	lightingShader.setFloat("pointLights[0].quadratic", 0.032f);
+
+	lightingShader.setVec3("pointLights[1].position", pointLightPositions[1]);
+	lightingShader.setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
+	lightingShader.setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
+	lightingShader.setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
+	lightingShader.setFloat("pointLights[1].constant", 1.0f);
+	lightingShader.setFloat("pointLights[1].linear", 0.09f);
+	lightingShader.setFloat("pointLights[1].quadratic", 0.032f);
+
+	lightingShader.setVec3("pointLights[2].position", pointLightPositions[2]);
+	lightingShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+	lightingShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+	lightingShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+	lightingShader.setFloat("pointLights[2].constant", 1.0f);
+	lightingShader.setFloat("pointLights[2].linear", 0.09f);
+	lightingShader.setFloat("pointLights[2].quadratic", 0.032f);
+
+	lightingShader.setVec3("pointLights[3].position", pointLightPositions[3]);
+	lightingShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+	lightingShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+	lightingShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+	lightingShader.setFloat("pointLights[3].constant", 1.0f);
+	lightingShader.setFloat("pointLights[3].linear", 0.09f);
+	lightingShader.setFloat("pointLights[3].quadratic", 0.032f);
+
+	lightingShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+	lightingShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+	lightingShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+	lightingShader.setFloat("spotLight.constant", 1.0f);
+	lightingShader.setFloat("spotLight.linear", 0.09f);
+	lightingShader.setFloat("spotLight.quadratic", 0.032f);
+	lightingShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(22.5f)));
+	lightingShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(25.0f)));
 
 	while (!glfwWindowShouldClose(window)) {
 		float currentFrame = (float)glfwGetTime();
@@ -66,18 +123,20 @@ int main(void) {
 		glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		ourShader.use();
+		lightingShader.use();
+		lightingShader.setVec3("spotLight.position", camera.Position);
+		lightingShader.setVec3("spotLight.direction", camera.Front);
 
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
 		glm::mat4 view = camera.GetViewMatrix();
-		ourShader.setMat4("projection", projection);
-		ourShader.setMat4("view", view);
+		lightingShader.setMat4("projection", projection);
+		lightingShader.setMat4("view", view);
 
 		glm::mat4 model = glm::mat4(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f));
 		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
-		ourShader.setMat4("model", model);
-		ourModel.Draw(ourShader);
+		lightingShader.setMat4("model", model);
+		ourModel.Draw(lightingShader);
 
 		glfwSwapBuffers(window);
 		glfwPollEvents();
