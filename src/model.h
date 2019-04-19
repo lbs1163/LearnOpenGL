@@ -9,16 +9,16 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include "shader.h"
 #include "mesh.h"
 
 using namespace std;
 
 unsigned int TextureFromFile(const char *path, const string &directory, bool gamma = false);
 
-class Model {
+class Model
+{
 public:
-	Model(char *path) {
+	Model(const char *path) {
 		loadModel(path);
 	}
 
@@ -85,13 +85,13 @@ private:
 				vertex.TexCoords = glm::vec2(0.0f, 0.0f);
 			}
 
-			for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
-				aiFace face = mesh->mFaces[i];
-				for (unsigned int j = 0; j < face.mNumIndices; j++)
-					indices.push_back(face.mIndices[j]);
-			}
-
 			vertices.push_back(vertex);
+		}
+
+		for (unsigned int i = 0; i < mesh->mNumFaces; i++) {
+			aiFace face = mesh->mFaces[i];
+			for (unsigned int j = 0; j < face.mNumIndices; j++)
+				indices.push_back(face.mIndices[j]);
 		}
 
 		if (mesh->mMaterialIndex >= 0) {

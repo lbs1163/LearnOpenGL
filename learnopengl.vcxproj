@@ -136,6 +136,8 @@
     <None Include="src\basic_lighting.frag" />
     <None Include="src\basic_lighting.vert" />
     <None Include="src\lamp.vert" />
+    <None Include="src\model_loading.frag" />
+    <None Include="src\model_loading.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
