@@ -2,7 +2,7 @@
 #define MODEL_H
 
 #include <stb_image.h>
-#include <assimp/Importer.hpp>
+#include <assimp/importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 
@@ -29,6 +29,7 @@ public:
 	}
 
 private:
+	vector<Texture> textures_loaded;
 	vector<Mesh> meshes;
 	string directory;
 
@@ -109,12 +110,24 @@ private:
 		for (unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
 			aiString str;
 			mat->GetTexture(type, i, &str);
-			Texture texture;
-			texture.id = TextureFromFile(str.C_Str(), directory);
-			texture.type = typeName;
-			texture.path = str;
-			textures.push_back(texture);
+			bool skip = false;
+			for (unsigned int j = 0; j < textures_loaded.size(); j++) {
+				if (std::strcmp(textures_loaded[j].path.data(), str.C_Str()) == 0) {
+					textures.push_back(textures_loaded[j]);
+					skip = true;
+					break;
+				}
+			}
+			if (!skip) {
+				Texture texture;
+				texture.id = TextureFromFile(str.C_Str(), directory);
+				texture.type = typeName;
+				texture.path = str.C_Str();
+				textures.push_back(texture);
+				textures_loaded.push_back(texture);
+			}
 		}
+		return textures;
 	}
 };
 
