@@ -2,17 +2,11 @@
 #define MESH_H
 
 #include <glad/glad.h>
-
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-
+#include <string>
+#include <vector>
 #include "shader.h"
 
-#include <string>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <vector>
 using namespace std;
 
 struct Vertex {
@@ -24,6 +18,7 @@ struct Vertex {
 struct Texture {
 	unsigned int id;
 	string type;
+	string path;
 };
 
 class Mesh {
@@ -63,7 +58,6 @@ public:
 		glDrawElements(GL_TRIANGLES, indices.size(), GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 
-		// always good practice to set everything back to defaults once configured.
 		glActiveTexture(GL_TEXTURE0);
 	}
 
