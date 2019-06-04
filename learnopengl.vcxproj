@@ -132,8 +132,9 @@
     <ClInclude Include="src\shader.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="src\depth_testing.frag" />
-    <None Include="src\depth_testing.vert" />
+    <None Include="src\stencil_single_color.frag" />
+    <None Include="src\stencil_testing.frag" />
+    <None Include="src\stencil_testing.vert" />
     <None Include="src\lamp.frag" />
     <None Include="src\basic_lighting.frag" />
     <None Include="src\basic_lighting.vert" />
